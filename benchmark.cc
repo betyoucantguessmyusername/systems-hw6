@@ -196,7 +196,9 @@ double time_space_used(
 
 
 
-
+void read_avg(double avg) {
+	cout << "avg nanosecs per op: " << avg << "\t\t";
+}
 
 
 
@@ -205,41 +207,41 @@ double time_space_used(
 
 
 // insert item into cache, query it, assert both value is unchanged
-void test_set_insert(uint32_t trials = 100000) {
+double test_set_insert(uint32_t trials = 100000) {
 	uint32_t size = sizeof(uint32_t);
 	Cache* myCache = set_up_cache();
 
 	double average_nanosecs = time_set(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 // fill cache, do insert and query it
-void test_set_insert_full(uint32_t trials = 100000) {
+double test_set_insert_full(uint32_t trials = 100000) {
 
 	uint32_t size = sizeof(uint32_t);
 	Cache* myCache = set_up_cache();
 	fill_cache(myCache);
 	double average_nanosecs = time_set(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 
 }
 
 // set element, overwrite it, query it
-void test_set_overwrite(uint32_t trials = 100000) {
+double test_set_overwrite(uint32_t trials = 100000) {
 
 	uint32_t size = sizeof(uint32_t);
 	Cache* myCache = set_up_cache();
 	uint32_t val = 2;
 	myCache->set("key", &val, size);
 	double average_nanosecs = time_set(myCache, trials, true);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 // set element, overwrite it with different size, query it
-void test_set_overwrite_dif_size(uint32_t trials = 100000) {
+double test_set_overwrite_dif_size(uint32_t trials = 100000) {
 
 	uint32_t size = sizeof(uint32_t);
 	uint16_t small_size = sizeof(uint16_t);
@@ -248,13 +250,13 @@ void test_set_overwrite_dif_size(uint32_t trials = 100000) {
 	myCache->set("key", &small_value, small_size);
 
 	double average_nanosecs = time_set(myCache, trials, true, true);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 
 
-void test_get_present(uint32_t trials = 100000) {
+double test_get_present(uint32_t trials = 100000) {
 
 	uint32_t size = sizeof(uint32_t);
 	uint16_t value = 1;
@@ -262,22 +264,22 @@ void test_get_present(uint32_t trials = 100000) {
 	myCache->set("key", &value, size);
 
 	double average_nanosecs = time_to_get(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 //checks that using get on an absent item returns a nullptr
-void test_get_absent(uint32_t trials = 100000) {
+double test_get_absent(uint32_t trials = 100000) {
 
 	Cache* myCache = set_up_cache();
 
 	double average_nanosecs = time_to_get(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 //checks that using get on a deleted item returns a nullptr
-void test_get_deleted(uint32_t trials = 100000) {
+double test_get_deleted(uint32_t trials = 100000) {
 	Cache* myCache = set_up_cache();
 
 	//insert/delete data
@@ -289,40 +291,64 @@ void test_get_deleted(uint32_t trials = 100000) {
 
 	// try to get it, time
 	double average_nanosecs = time_del(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 
 //checks that we don't crash when we delete something absent
-void test_delete_absent(uint32_t trials = 100000) {
+double test_delete_absent(uint32_t trials = 100000) {
 	Cache* myCache = set_up_cache();
 
 	// try to get it, time
 	double average_nanosecs = time_del(myCache, trials, true);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 //checks that initial space used is 0.
-void test_space_used_empty(uint32_t trials = 100000) {
+double test_space_used_empty(uint32_t trials = 100000) {
 
 	Cache* myCache = set_up_cache();
 
 	double average_nanosecs = time_space_used(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
 }
 
 // fill cache, check space used
-void test_space_used_full(uint32_t trials = 100000) {
+double test_space_used_full(uint32_t trials = 100000) {
 
 	Cache* myCache = set_up_cache();
 	fill_cache(myCache);
 
 	double average_nanosecs = time_space_used(myCache, trials);
-	cout << "avg nanosecs per op: " << average_nanosecs << "\t\t";
 	free(myCache);
+	return average_nanosecs;
+}
+
+
+
+void superscript(uint32_t trials = 100000) {
+	Cache* myCache = set_up_cache();
+	int operation = rand()%10;
+	bool set = operation<7;
+	int hit = rand()%10;
+
+	double total_time = 0;
+
+	while(total_time<1000) {
+		if (set) {
+			total_time += test_set_insert();
+		} else {
+			if (hit<9) {
+				total_time += test_get_present();
+			} else {
+				total_time += test_get_absent();
+			}
+		}
+	}
+
 }
 
 
@@ -331,44 +357,44 @@ void test_space_used_full(uint32_t trials = 100000) {
 int main(){
 
 	cout << "Running test_set_insert() \t\t"; 
-	test_set_insert();
+	read_avg(test_set_insert());
 	cout << "PASS" << endl;
 
 	cout << "Running test_set_insert_full() \t\t"; 
-	test_set_insert_full();
+	read_avg(test_set_insert_full());
 	cout << "PASS" << endl;
 
 	cout << "Running test_set_overwrite() \t\t"; 
-	test_set_overwrite();
+	read_avg(test_set_overwrite());
 	cout << "PASS" << endl;
 
 	cout << "Running test_set_overwrite_dif_size() \t"; 
-	test_set_overwrite_dif_size();
+	read_avg(test_set_overwrite_dif_size());
 	cout << "PASS" << endl;
 
 
 	cout << "Running test_get_present() \t\t";
-	test_get_absent();
+	read_avg(test_get_absent());
 	cout << "PASS" << endl;
 
 	cout << "Running test_get_absent() \t\t";
-	test_get_absent();
+	read_avg(test_get_absent());
 	cout << "PASS" << endl;
 
 	cout << "Running test_get_deleted() \t\t"; 
-	test_get_deleted();
+	read_avg(test_get_deleted());
 	cout << "PASS" << endl;
 
 	cout << "Running test_delete_absent() \t\t"; 
-	test_delete_absent();
+	read_avg(test_delete_absent());
 	cout << "PASS" << endl;
 
 	cout << "Running test_space_used_empty() \t"; 
-	test_space_used_empty();
+	read_avg(test_space_used_empty());
 	cout << "PASS" << endl;
 
 	cout << "Running test_space_used_full() \t\t"; 
-	test_space_used_full();
+	read_avg(test_space_used_full());
 	cout << "PASS" << endl;
 
 }
