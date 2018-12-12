@@ -296,6 +296,13 @@ double test_get_deleted(uint32_t trials = 100000) {
 }
 
 
+double test_delete(uint32_t trials = 100000) {
+	Cache* myCache = set_up_cache();
+	double average_nanosecs = time_del(myCache, trials);
+	free(myCache);
+	return average_nanosecs;
+}
+
 //checks that we don't crash when we delete something absent
 double test_delete_absent(uint32_t trials = 100000) {
 	Cache* myCache = set_up_cache();
@@ -329,15 +336,17 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 
 
-void superscript(uint32_t trials = 100000) {
+uint32_t superscript(uint32_t trials = 100000) {
 	Cache* myCache = set_up_cache();
 	int operation = rand()%10;
-	bool set = operation<7;
+	bool set = operation>6;
 	int hit = rand()%10;
 
 	double total_time = 0;
+	uint32_t total_operations;
 
-	while(total_time<1000) {
+	// loop until total_time > 1 microsecond
+	while(total_time<.00001) {
 		if (set) {
 			total_time += test_set_insert();
 		} else {
@@ -347,7 +356,9 @@ void superscript(uint32_t trials = 100000) {
 				total_time += test_get_absent();
 			}
 		}
+		total_operations++;
 	}
+	return total_operations;
 
 }
 
@@ -385,6 +396,10 @@ int main(){
 	read_avg(test_get_deleted());
 	cout << "PASS" << endl;
 
+	cout << "Running test_delete() \t\t\t"; 
+	read_avg(test_delete());
+	cout << "PASS" << endl;
+
 	cout << "Running test_delete_absent() \t\t"; 
 	read_avg(test_delete_absent());
 	cout << "PASS" << endl;
@@ -396,5 +411,8 @@ int main(){
 	cout << "Running test_space_used_full() \t\t"; 
 	read_avg(test_space_used_full());
 	cout << "PASS" << endl;
+
+	cout << "Running useless mandatory script \t\t";
+	cout << "operations in .01 microsecs: " <<superscript() << endl;
 
 }

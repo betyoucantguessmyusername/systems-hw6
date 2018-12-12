@@ -16,6 +16,7 @@ using node_type = tuple<uint32_t,string>;
 // if all val.s are same size it acts as LRU
 class EvictorType {
 private:
+	std::unordered_map<std::string, void*, Cache::hash_func> hashtable_;
 	vector<node_type> eviction_queue_;
 	// eviction_queue_ holds nodes of form (val-size, key)
 public:
