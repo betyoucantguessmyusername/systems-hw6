@@ -336,7 +336,7 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 
 
-uint32_t superscript(uint32_t trials = 100000) {
+uint32_t superscript() {
 	Cache* myCache = set_up_cache();
 	int operation = rand()%10;
 	bool set = operation>6;
