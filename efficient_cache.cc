@@ -17,15 +17,13 @@ using node_type = tuple<uint32_t,string>;
 class EvictorType {
 private:
 	std::unordered_map<std::string, uint32_t> keysizes_;
-	vector<node_type> eviction_queue_;
+	vector<string> eviction_queue_;
 	// eviction_queue_ holds nodes of form (val-size, key)
 public:
 	// returns next key to evict, also removes it from ev. q
-	node_type operator()() {
-		node_type next_evict;
+	string operator()() {;
 		// EvictorType() is never called on an empty eviction_queue
-		next_evict = eviction_queue_[0];
-		string next_evict_key = get<1>(next_evict);
+		string next_evict = eviction_queue_[0];
 		remove_first();
 		return next_evict;
 	}
@@ -33,9 +31,7 @@ public:
 	// add an element to eviction queue
 	// places it directly after the smallest el. w size >= to it, before smaller el.s
 	void add(uint32_t elt_size, string key) {
-		uint32_t evq_size = eviction_queue_.size();
-		node_type node = make_tuple(elt_size, key);
-		eviction_queue_.push_back(node);
+		eviction_queue_.push_back(key);
 		keysizes_[key] = elt_size;
 	}
 
@@ -102,13 +98,10 @@ struct Cache::Impl {
 		while(memused_ >= maxmem_) {
 			// get next_evict (also del.s it from ev. q.)
 			string next_evict_key;
-			node_type next_evict;
 			do {
-				next_evict = Evictor_();
-				next_evict_key = get_tuple_key(next_evict);
+				next_evict_key = Evictor_();
 			} while(hashtable_.find(next_evict_key)==hashtable_.end() );
-
-			uint32_t next_evict_size = get_tuple_size(next_evict);
+			uint32_t next_evict_size = Evictor_.getsize(next_evict_key);
 			memused_ -= next_evict_size;
 			hashtable_.erase(next_evict_key);
 		}
