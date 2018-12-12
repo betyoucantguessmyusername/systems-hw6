@@ -16,17 +16,17 @@ using node_type = tuple<uint32_t,string>;
 // if all val.s are same size it acts as LRU
 class EvictorType {
 private:
+	std::unordered_map<std::string, uint32_t> keysizes_;
 	vector<node_type> eviction_queue_;
 	// eviction_queue_ holds nodes of form (val-size, key)
 public:
 	// returns next key to evict, also removes it from ev. q
-	node_type evict() {
+	node_type operator()() {
 		node_type next_evict;
 		// EvictorType() is never called on an empty eviction_queue
-		assert(eviction_queue_.size()>0 && "nothing to evict\n");
 		next_evict = eviction_queue_[0];
 		string next_evict_key = get<1>(next_evict);
-		remove(next_evict_key);
+		remove_first();
 		return next_evict;
 	}
 
@@ -36,27 +36,17 @@ public:
 		uint32_t evq_size = eviction_queue_.size();
 		node_type node = make_tuple(elt_size, key);
 		eviction_queue_.push_back(node);
+		keysizes_[key] = elt_size;
 	}
 
 	// remove an item from ev. q.
-	void remove(string key) {
-
-		// erase-remove_if idiom
-
-		eviction_queue_.erase(std::remove_if(eviction_queue_.begin(), eviction_queue_.end(), [key](node_type node){return get<1>(node)==key;}), eviction_queue_.end());
+	void remove_first() {
+		eviction_queue_.erase(eviction_queue_.begin());
 	}
 
 	// get size of key's val
 	uint32_t getsize(string key) {
-		uint32_t i = 0;
-		for(;i<eviction_queue_.size(); i++) {
-			node_type node = eviction_queue_[i];
-			if(get<1>(node) == key) {
-				return get<0>(node);
-			}
-		}
-		assert(false && "key not found\n");
-		return 0;
+		return keysizes_[key];
 	}
 };
 
@@ -107,13 +97,17 @@ struct Cache::Impl {
 			// remove it from queue (will overwrite it in cache/re-add it to queue later)
 			free(hashtable_[key]);
 			memused_ -= Evictor_.getsize(key);
-			Evictor_.remove(key);
 		}
 		memused_ += size;
 		while(memused_ >= maxmem_) {
 			// get next_evict (also del.s it from ev. q.)
-			node_type next_evict = Evictor_.evict();
-			string next_evict_key = get_tuple_key(next_evict);
+			string next_evict_key;
+			node_type next_evict;
+			do {
+				next_evict = Evictor_();
+				next_evict_key = get_tuple_key(next_evict);
+			} while(hashtable_.find(next_evict_key)==hashtable_.end() );
+
 			uint32_t next_evict_size = get_tuple_size(next_evict);
 			memused_ -= next_evict_size;
 			hashtable_.erase(next_evict_key);
@@ -128,7 +122,6 @@ struct Cache::Impl {
 	// returns cache[key]
 	val_type get(key_type key, index_type& val_size) const {
 		if(hashtable_.find(key)!=hashtable_.end()) {
-			Evictor_.remove(key);
 			Evictor_.add(val_size, key);
 			return hashtable_.find(key)->second;
 		} else {
@@ -142,7 +135,6 @@ struct Cache::Impl {
 			free(hashtable_[key]);
 			hashtable_.erase(key);
 			memused_ -= Evictor_.getsize(key);
-			Evictor_.remove(key);
 			return 0;
 		}
 		return -1;
