@@ -345,7 +345,6 @@ uint32_t superscript() {
 	double total_time = 0;
 	uint32_t total_operations;
 
-	// loop until total_time > 1 microsecond
 	while(total_time<.00001) {
 		if (set) {
 			total_time += test_set_insert();
@@ -412,7 +411,7 @@ int main(){
 	read_avg(test_space_used_full());
 	cout << "PASS" << endl;
 
-	cout << "Running useless mandatory script \t\t";
+	cout << "Running superscript \t\t";
 	cout << "operations in .01 microsecs: " <<superscript() << endl;
 
 }
