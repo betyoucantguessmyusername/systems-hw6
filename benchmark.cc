@@ -412,6 +412,6 @@ int main(){
 	cout << "PASS" << endl;
 
 	cout << "Running superscript \t\t";
-	cout << "operations in .01 microsecs: " <<superscript() << endl;
+	cout << "operations in .00001 nanosecs: " <<superscript() << endl;
 
 }
