@@ -12,30 +12,30 @@
 using namespace std;
 using node_type = tuple<uint32_t,string>;
 
-// this is a functor (implements Largest-out-first, to maximize number of values stored)
-// if all val.s are same size it acts as LRU
+// this is a functor (implements LRU
 class EvictorType {
 private:
 	std::unordered_map<std::string, uint32_t> keysizes_;
+	// keysizes tracks value sizes of all keys in eviction queue
 	vector<string> eviction_queue_;
-	// eviction_queue_ holds nodes of form (val-size, key)
+
 public:
 	// returns next key to evict, also removes it from ev. q
+	// copies of it may still be in ev. q
 	string operator()() {;
-		// EvictorType() is never called on an empty eviction_queue
 		string next_evict = eviction_queue_[0];
 		remove_first();
 		return next_evict;
 	}
 
 	// add an element to eviction queue
-	// places it directly after the smallest el. w size >= to it, before smaller el.s
+	// places it at end of queue
 	void add(uint32_t elt_size, string key) {
 		eviction_queue_.push_back(key);
 		keysizes_[key] = elt_size;
 	}
 
-	// remove an item from ev. q.
+	// remove first item from ev. q.
 	void remove_first() {
 		eviction_queue_.erase(eviction_queue_.begin());
 	}
@@ -96,7 +96,7 @@ struct Cache::Impl {
 		}
 		memused_ += size;
 		while(memused_ >= maxmem_) {
-			// get next_evict (also del.s it from ev. q.)
+			// get next_evict (also del.s it from ev. q., copies may remain in q)
 			string next_evict_key;
 			do {
 				next_evict_key = Evictor_();
