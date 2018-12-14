@@ -20,7 +20,7 @@
 using namespace std;
 
 
-const int NANOS_PER_SEC = 1000000000;
+const double NANOS_PER_SEC = 1000000000.;
 
 
 // this is a functor
@@ -105,7 +105,9 @@ double time_set(
 		}
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -131,7 +133,8 @@ double time_to_get(
 		// start from empty cache each set
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -165,7 +168,8 @@ double time_del(
 		}
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -189,7 +193,8 @@ double time_space_used(
 		// start from empty cache each set
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -342,17 +347,21 @@ uint32_t superscript() {
 	bool set = operation>6;
 	int hit = rand()%10;
 
-	double total_time = 0;
+	double total_nanosecs = 0;
 	uint32_t total_operations;
 
-	while(total_time<.00001) {
+
+	const uint32_t A_HUNDRED_MILLISECS = 100000;
+	// 100 millisecs = 100000 nanosecs
+
+	while(total_nanosecs<A_HUNDRED_MILLISECS) {
 		if (set) {
-			total_time += test_set_insert();
+			total_nanosecs += test_set_insert();
 		} else {
 			if (hit<9) {
-				total_time += test_get_present();
+				total_nanosecs += test_get_present();
 			} else {
-				total_time += test_get_absent();
+				total_nanosecs += test_get_absent();
 			}
 		}
 		total_operations++;
@@ -411,7 +420,7 @@ int main(){
 	read_avg(test_space_used_full());
 	cout << "PASS" << endl;
 
-	cout << "Running superscript \t\t";
-	cout << "operations in .00001 nanosecs: " <<superscript() << endl;
+	cout << "Running superscript \t\t\t";
+	cout << "operations per millisec: " <<superscript() << endl;
 
 }
