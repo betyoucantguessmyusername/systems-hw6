@@ -21,6 +21,8 @@ using namespace std;
 
 
 const double NANOS_PER_SEC = 1000000000.;
+const uint32_t A_HUNDRED_MILLISECS = 100000;
+// 100 millisecs = 100000 nanosecs
 
 
 // this is a functor
@@ -343,18 +345,15 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 uint32_t superscript() {
 	Cache* myCache = set_up_cache();
-	int operation = rand()%10;
-	bool set = operation>6;
-	int hit = rand()%10;
 
 	double total_nanosecs = 0;
 	uint32_t total_operations;
 
 
-	const uint32_t A_HUNDRED_MILLISECS = 100000;
-	// 100 millisecs = 100000 nanosecs
-
 	while(total_nanosecs<A_HUNDRED_MILLISECS) {
+		int operation = rand()%10;
+		bool set = operation>6;
+		int hit = rand()%10;
 		if (set) {
 			total_nanosecs += test_set_insert();
 		} else {
