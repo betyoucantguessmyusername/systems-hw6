@@ -338,15 +338,15 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 uint32_t superscript() {
 	Cache* myCache = set_up_cache();
-	int operation = rand()%10;
-	bool set = operation>6;
-	int hit = rand()%10;
 
 	double total_time = 0;
 	uint32_t total_operations;
 
 	// loop until total_time > 1 microsecond
 	while(total_time<.00001) {
+		int operation = rand()%10;
+		bool set = operation>6;
+		int hit = rand()%10;
 		if (set) {
 			total_time += test_set_insert();
 		} else {
