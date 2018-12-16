@@ -343,11 +343,11 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 
 
-uint32_t superscript() {
+double superscript() {
 	Cache* myCache = set_up_cache();
 
 	double total_nanosecs = 0;
-	uint32_t total_operations;
+	uint16_t total_operations;
 
 
 	while(total_nanosecs<A_HUNDRED_MILLISECS) {
@@ -365,7 +365,8 @@ uint32_t superscript() {
 		}
 		total_operations++;
 	}
-	return total_operations;
+
+	return (double)total_operations/100.;
 
 }
 
@@ -420,6 +421,6 @@ int main(){
 	cout << "PASS" << endl;
 
 	cout << "Running superscript \t\t\t";
-	cout << "operations per 100 millisecs: " <<superscript() << endl;
+	cout << "avg operations per millisec: " <<superscript() << endl;
 
 }
