@@ -20,7 +20,9 @@
 using namespace std;
 
 
-const int NANOS_PER_SEC = 1000000000;
+const double NANOS_PER_SEC = 1000000000.;
+const uint32_t A_HUNDRED_MILLISECS = 100000;
+// 100 millisecs = 100000 nanosecs
 
 
 // this is a functor
@@ -105,7 +107,9 @@ double time_set(
 		}
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -131,7 +135,8 @@ double time_to_get(
 		// start from empty cache each set
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -165,7 +170,8 @@ double time_del(
 		}
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -189,7 +195,8 @@ double time_space_used(
 		// start from empty cache each set
 	}
 
-	double elapsed_nanosecs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_secs = elapsed_ticks/(double)CLOCKS_PER_SEC;
+	double elapsed_nanosecs = elapsed_secs*NANOS_PER_SEC;
 	double average_nanosecs = elapsed_nanosecs/(double)trials;
 	return average_nanosecs;
 }
@@ -336,29 +343,31 @@ double test_space_used_full(uint32_t trials = 100000) {
 
 
 
-uint32_t superscript() {
+double superscript() {
 	Cache* myCache = set_up_cache();
-	int operation = rand()%10;
-	bool set = operation>6;
-	int hit = rand()%10;
 
-	double total_time = 0;
-	uint32_t total_operations;
+	double total_nanosecs = 0;
+	uint16_t total_operations;
 
-	// loop until total_time > 1 microsecond
-	while(total_time<.00001) {
+
+	while(total_nanosecs<A_HUNDRED_MILLISECS) {
+		int operation = rand()%10;
+		bool set = operation>6;
+		int hit = rand()%10;
 		if (set) {
-			total_time += test_set_insert();
+			total_nanosecs += test_set_insert();
 		} else {
 			if (hit<9) {
-				total_time += test_get_present();
+				total_nanosecs += test_get_present();
 			} else {
-				total_time += test_get_absent();
+				total_nanosecs += test_get_absent();
 			}
 		}
 		total_operations++;
 	}
-	return total_operations;
+
+	double avg_ops_per_ms = (double)total_operations/100.;
+	return avg_ops_per_ms;
 
 }
 
@@ -412,7 +421,7 @@ int main(){
 	read_avg(test_space_used_full());
 	cout << "PASS" << endl;
 
-	cout << "Running useless mandatory script \t\t";
-	cout << "operations in .01 microsecs: " <<superscript() << endl;
+	cout << "Running superscript \t\t\t";
+	cout << "avg operations per millisec: " <<superscript() << endl;
 
 }
